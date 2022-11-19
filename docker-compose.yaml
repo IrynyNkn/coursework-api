@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  postgres:
+    image: "postgres"
+    container_name: "postgres"
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=gamely
+      - POSTGRES_USER=gamely-user
+      - POSTGRES_PASSWORD=gamely-password
+
+volumes:
+  pgdata:
