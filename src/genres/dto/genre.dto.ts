@@ -1,6 +1,6 @@
 import {IsNotEmpty, IsString} from "class-validator";
 
-export class PublisherDto {
+export class GenreDto {
   @IsNotEmpty()
   @IsString()
   public name: string
