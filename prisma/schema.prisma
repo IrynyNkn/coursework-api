@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String        @unique @default(uuid())
+  ratings        Rating[]
+  comments       Comment[]
+  commentLikes   CommentLike[]
+  createdAt      DateTime      @default(now())
+  email          String        @unique
+  userName       String
+  hashedPassword String
+  role           String?
+}
+
+model Publisher {
+  id    String @unique @default(uuid())
+  name  String
+  games Game[]
+}
+
+model Game {
+  id             String             @unique @default(uuid())
+  publisher      Publisher          @relation(fields: [publisherId], references: [id])
+  publisherId    String
+  genres         GenresOnGames[]
+  platforms      PlatformsOnGames[]
+  ratings        Rating[]
+  comments       Comment[]
+  title          String
+  description    String
+  imageLink      String
+  ageRestriction Int
+  releaseYear    Int
+  updateAt       DateTime           @updatedAt()
+}
+
+model Genre {
+  id    String          @unique @default(uuid())
+  name  String
+  games GenresOnGames[]
+}
+
+model GenresOnGames {
+  game    Game   @relation(fields: [gameId], references: [id])
+  gameId  String
+  genre   Genre  @relation(fields: [genreId], references: [id])
+  genreId String
+
+  @@id([gameId, genreId])
+}
+
+model Platform {
+  id    String             @unique @default(uuid())
+  name  String
+  games PlatformsOnGames[]
+}
+
+model PlatformsOnGames {
+  game       Game     @relation(fields: [gameId], references: [id])
+  gameId     String
+  platform   Platform @relation(fields: [platformId], references: [id])
+  platformId String
+
+  @@id([gameId, platformId])
+}
+
+model Rating {
+  id     String @unique @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  game   Game   @relation(fields: [gameId], references: [id])
+  gameId String
+  value  Int
+}
+
+model Comment {
+  id           String        @unique @default(uuid())
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  game         Game          @relation(fields: [gameId], references: [id])
+  gameId       String
+  value        String
+  parentId     String?
+  commentLikes CommentLike[]
+}
+
+model CommentLike {
+  id        String  @unique @default(uuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  comment   Comment @relation(fields: [commentId], references: [id])
+  commentId String
+}
