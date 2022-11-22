@@ -81,14 +81,16 @@ model Rating {
 }
 
 model Comment {
-  id           String        @unique @default(uuid())
-  user         User          @relation(fields: [userId], references: [id])
-  userId       String
-  game         Game          @relation(fields: [gameId], references: [id])
-  gameId       String
-  value        String
-  parentId     String?
-  commentLikes CommentLike[]
+  id                String        @unique @default(uuid())
+  user              User          @relation(fields: [userId], references: [id])
+  userId            String
+  game              Game          @relation(fields: [gameId], references: [id])
+  gameId            String
+  value             String
+  parentId          String?
+  parent            Comment?      @relation("PreviousComment", fields: [parentId], references: [id])
+  daughterComments  Comment[]     @relation("PreviousComment")
+  commentLikes      CommentLike[]
 }
 
 model CommentLike {
