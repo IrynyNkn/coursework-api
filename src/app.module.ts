@@ -11,10 +11,13 @@ import { GamesModule } from './games/games.module';
 import { CommentsModule } from './comments/comments.module';
 import { CommentLikesModule } from './comment-likes/comment-likes.module';
 import { RatingsModule } from './ratings/ratings.module';
+import {MulterModule} from "@nestjs/platform-express";
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, PlatformsModule, PublishersModule, GenresModule, GamesModule, CommentsModule, CommentLikesModule, RatingsModule],
-  // controllers: [AppController],
-  // providers: [AppService],
+  imports: [MulterModule.register({
+    dest: './files',
+  }), AuthModule, PrismaModule, UsersModule, PlatformsModule, PublishersModule, GenresModule, GamesModule, CommentsModule, CommentLikesModule, RatingsModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

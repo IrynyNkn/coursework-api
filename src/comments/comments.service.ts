@@ -21,11 +21,12 @@ export class CommentsService {
             }
           },
           value: comment.value,
+          replyUserMention: comment.replyUserMention || null,
           parent: {
             connect: {
               id: comment.parentId
             }
-          }
+          },
         }
       })
     } else {
@@ -41,6 +42,7 @@ export class CommentsService {
               id: comment.gameId
             }
           },
+          replyUserMention: comment.replyUserMention || null,
           value: comment.value,
         }
       })

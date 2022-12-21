@@ -8,15 +8,16 @@ datasource db {
 }
 
 model User {
-  id             String        @unique @default(uuid())
-  ratings        Rating[]
-  comments       Comment[]
-  commentLikes   CommentLike[]
-  createdAt      DateTime      @default(now())
-  email          String        @unique
-  userName       String
-  hashedPassword String
-  role           String?
+  id              String        @unique @default(uuid())
+  ratings         Rating[]
+  comments        Comment[]
+  commentLikes    CommentLike[]
+  createdAt       DateTime      @default(now())
+  email           String        @unique
+  userName        String
+  hashedPassword  String
+  roles           String[]
+  badgeColor      String? // remove ?
 }
 
 model Publisher {
@@ -27,7 +28,7 @@ model Publisher {
 
 model Game {
   id             String             @unique @default(uuid())
-  publisher      Publisher          @relation(fields: [publisherId], references: [id])
+  publisher      Publisher          @relation(fields: [publisherId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   publisherId    String
   genres         GenresOnGames[]
   platforms      PlatformsOnGames[]
@@ -48,9 +49,9 @@ model Genre {
 }
 
 model GenresOnGames {
-  game    Game   @relation(fields: [gameId], references: [id])
+  game    Game   @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   gameId  String
-  genre   Genre  @relation(fields: [genreId], references: [id])
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   genreId String
 
   @@id([gameId, genreId])
@@ -63,9 +64,9 @@ model Platform {
 }
 
 model PlatformsOnGames {
-  game       Game     @relation(fields: [gameId], references: [id])
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   gameId     String
-  platform   Platform @relation(fields: [platformId], references: [id])
+  platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   platformId String
 
   @@id([gameId, platformId])
@@ -73,30 +74,31 @@ model PlatformsOnGames {
 
 model Rating {
   id     String @unique @default(uuid())
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId String
-  game   Game   @relation(fields: [gameId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   gameId String
   value  Int
 }
 
 model Comment {
   id                String        @unique @default(uuid())
-  user              User          @relation(fields: [userId], references: [id])
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId            String
-  game              Game          @relation(fields: [gameId], references: [id])
+  game              Game          @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   gameId            String
   value             String
   parentId          String?
   parent            Comment?      @relation("PreviousComment", fields: [parentId], references: [id])
   daughterComments  Comment[]     @relation("PreviousComment")
   commentLikes      CommentLike[]
+  replyUserMention  String?
 }
 
 model CommentLike {
   id        String  @unique @default(uuid())
-  user      User    @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId    String
-  comment   Comment @relation(fields: [commentId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   commentId String
 }

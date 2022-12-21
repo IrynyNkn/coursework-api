@@ -13,4 +13,8 @@ export class CommentDto {
   @IsUUID()
   @IsOptional()
   public parentId?: string | null
+
+  @IsString()
+  @IsOptional()
+  public replyUserMention?: string | undefined | null
 }

@@ -7,21 +7,33 @@ export class RatingsService {
   constructor(private prisma: PrismaService) {}
 
   async rateGame(rateDto: RatingDto) {
-    await this.prisma.rating.create({
-      data: {
-        user: {
-          connect: {
-            id: rateDto.userId
-          }
+
+    if(rateDto.ratingId) {
+      await this.prisma.rating.update({
+        where: {
+          id: rateDto.ratingId
         },
-        game: {
-          connect: {
-            id: rateDto.gameId
-          }
-        },
-        value: rateDto.value
-      }
-    })
+        data: {
+          value: rateDto.value
+        }
+      })
+    } else {
+      await this.prisma.rating.create({
+        data: {
+          user: {
+            connect: {
+              id: rateDto.userId
+            }
+          },
+          game: {
+            connect: {
+              id: rateDto.gameId
+            }
+          },
+          value: rateDto.value
+        }
+      })
+    }
 
     return { message: 'Game is successfully rated' };
   }

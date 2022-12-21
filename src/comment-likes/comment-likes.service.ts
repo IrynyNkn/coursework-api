@@ -24,4 +24,15 @@ export class CommentLikesService {
 
     return { message: 'Like is successfully added to the comment' }
   }
+
+  async removeLike(id: string) {
+    await this.prisma.commentLike.delete({
+      where: {
+        id
+      }
+    })
+
+    return { message: 'Like is successfully removed from the comment' }
+  }
+
 }

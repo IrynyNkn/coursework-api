@@ -20,15 +20,27 @@ export class AuthService {
 
     const hashedPassword = await this.hashPassword(password);
 
-    await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email,
         userName,
-        hashedPassword
+        hashedPassword,
+        roles: ['user']
       }
     })
 
-    return {message: 'sign up was successful'};
+    const token = await this.signToken({
+      id: user.id,
+      email: user.email,
+      roles: user.roles
+    });
+
+    return {
+      message: 'Sign up was successful',
+      data: {
+        token
+      }
+    };
   }
 
   async signin(dto: SingInDto) {
@@ -48,10 +60,16 @@ export class AuthService {
 
     const token = await this.signToken({
       id: foundUser.id,
-      email: foundUser.email
+      email: foundUser.email,
+      roles: foundUser.roles
     });
 
-    return { token };
+    return {
+      message: 'Log in was successful',
+      data: {
+        token
+      }
+    };
   }
 
   async signout() {
@@ -67,9 +85,12 @@ export class AuthService {
     return await bcrypt.compare(password, hash);
   }
 
-  async signToken(args: {id: string, email: string}) {
+  async signToken(args: {id: string, email: string, roles: string[]}) {
     const payload = args;
 
-    return await this.jwt.signAsync(payload, {secret: jwtSecret});
+    return await this.jwt.signAsync(payload, {
+      secret: jwtSecret,
+      expiresIn: '36000s'
+    });
   }
 }

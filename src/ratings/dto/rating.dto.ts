@@ -1,4 +1,4 @@
-import {IsUUID, IsInt} from "class-validator";
+import {IsUUID, IsInt, ValidateIf} from "class-validator";
 
 export class RatingDto {
   @IsUUID()
@@ -9,4 +9,8 @@ export class RatingDto {
 
   @IsInt()
   public value: number
+
+  @IsUUID()
+  @ValidateIf((object, value) => value !== null)
+  public ratingId: string | null
 }
