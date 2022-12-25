@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards} from '@nestjs/common';
 import { PublishersService } from './publishers.service';
 import {PublisherDto} from "./dto/publisher.dto";
 import {JwtAuthGuard} from "../auth/jwt.guard";
@@ -17,6 +17,12 @@ export class PublishersController {
   }
 
   @Roles('admin', 'manager')
+  @Patch(':id')
+  updatePublisher(@Param() params: {id: string}, @Body() dto: PublisherDto) {
+    return this.publishersService.updatePublisher(params.id, dto);
+  }
+
+  @Roles('admin', 'manager')
   @Get()
   getPublishers() {
     return this.publishersService.getPublishers();
@@ -26,5 +32,11 @@ export class PublishersController {
   @Get(':id')
   getPublisherById(@Param() params: {id: string}) {
     return this.publishersService.getPublisher(params.id);
+  }
+
+  @Roles('admin', 'manager')
+  @Delete(':id')
+  deletePublisher(@Param() params: {id: string}) {
+    return this.publishersService.deletePublisher(params.id);
   }
 }

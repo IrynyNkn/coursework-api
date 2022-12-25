@@ -23,6 +23,24 @@ export class PlatformsService {
     };
   }
 
+  async updatePlatform(id: string, dto: PlatformDto) {
+    const updatedPlt = await this.prisma.platform.update({
+      where: {
+        id
+      },
+      data: {
+        name: dto.name
+      }
+    });
+
+    return {
+      message: 'Platform is successfully updated',
+      data: {
+        id: updatedPlt.id
+      }
+    };
+  }
+
   async getPlatform(id: string) {
     const platform = await this.prisma.platform.findUnique({where: {id}});
     return { data: platform };
@@ -30,5 +48,13 @@ export class PlatformsService {
 
   async getPlatforms() {
     return await this.prisma.platform.findMany();
+  }
+
+  async deletePlatform(id: string) {
+    await this.prisma.platform.delete({
+      where: {id}
+    });
+
+    return { message: 'Platform is successfully deleted' };
   }
 }

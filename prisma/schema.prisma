@@ -36,7 +36,7 @@ model Game {
   comments       Comment[]
   title          String
   description    String
-  imageLink      String
+  imageLink      String?
   ageRestriction Int
   releaseYear    Int
   updateAt       DateTime           @updatedAt()

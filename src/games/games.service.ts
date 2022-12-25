@@ -1,6 +1,6 @@
 import {BadRequestException, Injectable} from '@nestjs/common';
 import {PrismaService} from "../../prisma/prisma.service";
-import {CreateGameDto, GameDto} from "./dto/games.dto";
+import {GameDto} from "./dto/games.dto";
 import { Response as Res } from 'express';
 import {apiUrl} from "../utils/constants";
 
@@ -20,7 +20,7 @@ export class GamesService {
       data: {
         title: gameDto.title,
         description: gameDto.description,
-        imageLink: `${apiUrl}/${gameDto.imageLink}`,
+        imageLink: gameDto.imageLink ? `games/image/${gameDto.imageLink}` : null,
         ageRestriction,
         releaseYear,
         publisher: {
@@ -168,47 +168,79 @@ export class GamesService {
     };
   }
 
-  async updateGame(id: string, gameDto: GameDto) {
-    const updatedGame = await this.prisma.game.update({
-      where: {
-        id
-      },
-      data: {
-        title: gameDto.title,
-        description: gameDto.description,
-        imageLink: gameDto.imageLink,
-        ageRestriction: gameDto.ageRestriction,
-        releaseYear: gameDto.releaseYear,
-        publisher: {
-          connect: {
-            id: gameDto.publisherId
+  async updateGame(id: string, gameDto: GameDto, res: Res) {
+    let updatedGame = null;
+    const ageRestriction = Number(gameDto.ageRestriction);
+    const releaseYear = Number(gameDto.releaseYear);
+
+    if(typeof ageRestriction !== 'number' && typeof releaseYear !== 'number') {
+      throw new BadRequestException('Invalid input');
+    }
+    if(gameDto.imageLink) {
+      updatedGame = await this.prisma.game.update({
+        where: {
+          id
+        },
+        data: {
+          title: gameDto.title,
+          description: gameDto.description,
+          imageLink: `games/image/${gameDto.imageLink}`,
+          ageRestriction,
+          releaseYear,
+          publisher: {
+            connect: {
+              id: gameDto.publisherId
+            }
+          },
+          genres: {
+            deleteMany: {},
+            create: gameDto.genres.map(genre => ({
+              genreId: genre
+            }))
+          },
+          platforms: {
+            deleteMany: {},
+            create: gameDto.platforms.map(plt => ({
+              platformId: plt
+            }))
           }
         },
-        genres: {
-          create: gameDto.genres.map(genre => ({
-            genre: {
-              connect: {
-                id: genre
-              }
-            }
-          }))
+      });
+    } else {
+      updatedGame = await this.prisma.game.update({
+        where: {
+          id
         },
-        platforms: {
-          create: gameDto.platforms.map(platform => ({
-            platform: {
-              connect: {
-                id: platform
-              }
+        data: {
+          title: gameDto.title,
+          description: gameDto.description,
+          ageRestriction,
+          releaseYear,
+          publisher: {
+            connect: {
+              id: gameDto.publisherId
             }
-          }))
-        }
-      },
-    })
+          },
+          genres: {
+            deleteMany: {},
+            create: gameDto.genres.map(genre => ({
+              genreId: genre
+            }))
+          },
+          platforms: {
+            deleteMany: {},
+            create: gameDto.platforms.map(plt => ({
+              platformId: plt
+            }))
+          }
+        },
+      })
+    }
 
-    return {
+    return res.set({ 'Access-Control-Allow-Origin': 'http://localhost:3000' }).json({
       message: 'Game is successfully updated',
       data: updatedGame
-    }
+    });
   }
 
   async deleteGame(id: string) {

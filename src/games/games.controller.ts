@@ -12,7 +12,6 @@ import {
   UseInterceptors, UploadedFile
 } from '@nestjs/common';
 import { GamesService } from './games.service';
-import {CreateGameDto, GameDto} from "./dto/games.dto";
 import {JwtAuthGuard} from "../auth/jwt.guard";
 import {RolesGuard} from "../roles/roles.guard";
 import {Roles} from "../roles/roles.decorator";
@@ -32,7 +31,6 @@ export class GamesController {
 
   @Get(':id')
   getGameById(@Param() params: {id: string}, @Response() res) {
-    // console.log('res', res)
     return this.gamesService.getGame(params.id, res);
   }
 
@@ -41,26 +39,8 @@ export class GamesController {
     return res.sendFile(image, { root: './files' });
   }
 
-  // @Roles('manager', 'admin')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Post()
-  // @UseInterceptors(FileInterceptor('gameImage'))
-  // createGame(
-  //   @UploadedFile() file: Express.Multer.File,
-  //   // @Body() dto: any,
-  //   @Response() res: Res
-  // ) { // GameDto
-  //   // const response = this.gamesService.createGame(dto);
-  //   console.log('FILE', file)
-  //   return res.set({ 'Access-Control-Allow-Origin': 'http://localhost:3000' }).json({
-  //     message: 'Game is successfully created',
-  //     data: {
-  //       id: 'cool'
-  //     }
-  //   });
-  // }
-
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('manager', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
@@ -69,11 +49,9 @@ export class GamesController {
     }),
     fileFilter: imageFileFilter,
   }))
-  uploadFile(@UploadedFile() file: Express.Multer.File, @Body() body, @Response() res: Res) {
-    console.log('FILE', file);
-    console.log('BODY', body);
-    const fileName = file.filename;
-    console.log('FILE NAME', fileName)
+  createGame(@UploadedFile() file: Express.Multer.File, @Body() body, @Response() res: Res) {
+    const fileName = file?.filename;
+
     const createGameDto = {
       ...body,
       imageLink: fileName
@@ -92,8 +70,29 @@ export class GamesController {
   @Roles('manager', 'admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
-  updateGame(@Param() params: {id: string}, @Body() dto: GameDto) {
-    return this.gamesService.updateGame(params.id, dto);
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './files',
+      filename: editFileName,
+    }),
+    fileFilter: imageFileFilter,
+  }))
+  updateGame(@UploadedFile() file: Express.Multer.File, @Param() params: {id: string}, @Body() dto, @Response() res: Res) {
+    const fileName = file?.filename;
+
+    const updateGameDto = {
+      ...dto,
+      imageLink: fileName
+    };
+
+    try {
+      updateGameDto.genres = JSON.parse(dto.genres);
+      updateGameDto.platforms = JSON.parse(dto.platforms);
+    } catch (e) {
+      console.log('Error', e)
+    }
+
+    return this.gamesService.updateGame(params.id, updateGameDto, res);
   }
 
   @Roles('manager', 'admin')

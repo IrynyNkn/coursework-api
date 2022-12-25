@@ -20,7 +20,25 @@ export class PublishersService {
         id: publisher.id
       }
     };
-  };
+  }
+
+  async updatePublisher(id: string, dto: PublisherDto) {
+    const updatedPublisher = await this.prisma.publisher.update({
+      where: {
+        id
+      },
+      data: {
+        name: dto.name
+      }
+    });
+
+    return {
+      message: 'Publisher is successfully updated',
+      data: {
+        id: updatedPublisher.id
+      }
+    };
+  }
 
   async getPublisher(id: string) {
     const publisher = await this.prisma.publisher.findUnique({where: {id}});
@@ -29,5 +47,13 @@ export class PublishersService {
 
   async getPublishers() {
     return await this.prisma.publisher.findMany();
+  }
+
+  async deletePublisher(id: string) {
+    await this.prisma.publisher.delete({
+      where: {id}
+    });
+
+    return { message: 'Publisher is successfully deleted' };
   }
 }
