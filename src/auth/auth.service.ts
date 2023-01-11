@@ -3,7 +3,8 @@ import {PrismaService} from "../../prisma/prisma.service";
 import {AuthDto, SingInDto} from "./dto/auth.dto";
 import * as bcrypt from 'bcrypt';
 import {JwtService} from "@nestjs/jwt";
-import {jwtSecret} from "../utils/constants";
+import {jwtSecret, UserRoles} from "../utils/constants";
+import {getUserColor} from "../utils/colors";
 
 @Injectable()
 export class AuthService {
@@ -25,14 +26,15 @@ export class AuthService {
         email,
         userName,
         hashedPassword,
-        roles: ['user']
+        badgeColor: getUserColor(),
+        role: UserRoles.USER
       }
     })
 
     const token = await this.signToken({
       id: user.id,
       email: user.email,
-      roles: user.roles
+      role: user.role
     });
 
     return {
@@ -61,7 +63,7 @@ export class AuthService {
     const token = await this.signToken({
       id: foundUser.id,
       email: foundUser.email,
-      roles: foundUser.roles
+      role: foundUser.role
     });
 
     return {
@@ -85,7 +87,7 @@ export class AuthService {
     return await bcrypt.compare(password, hash);
   }
 
-  async signToken(args: {id: string, email: string, roles: string[]}) {
+  async signToken(args: {id: string, email: string, role: string}) {
     const payload = args;
 
     return await this.jwt.signAsync(payload, {

@@ -1,9 +1,6 @@
-import {IsArray, ArrayMinSize} from "class-validator";
-
-type UserRole = 'user' | 'admin' | 'manager'
+import {IsString} from "class-validator";
 
 export class UpdUserDto {
-  @IsArray()
-  @ArrayMinSize(1)
-  public roles: UserRole[]
+  @IsString()
+  public role: string
 }

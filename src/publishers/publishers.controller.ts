@@ -6,35 +6,35 @@ import {RolesGuard} from "../roles/roles.guard";
 import {Roles} from "../roles/roles.decorator";
 
 @Controller('publishers')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class PublishersController {
   constructor(private readonly publishersService: PublishersService) {}
 
   @Roles('admin', 'manager')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   createPublisher(@Body() dto: PublisherDto) {
     return this.publishersService.createPublisher(dto);
   }
 
   @Roles('admin', 'manager')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   updatePublisher(@Param() params: {id: string}, @Body() dto: PublisherDto) {
     return this.publishersService.updatePublisher(params.id, dto);
   }
 
-  @Roles('admin', 'manager')
   @Get()
   getPublishers() {
     return this.publishersService.getPublishers();
   }
 
-  @Roles('admin', 'manager')
   @Get(':id')
   getPublisherById(@Param() params: {id: string}) {
     return this.publishersService.getPublisher(params.id);
   }
 
   @Roles('admin', 'manager')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   deletePublisher(@Param() params: {id: string}) {
     return this.publishersService.deletePublisher(params.id);

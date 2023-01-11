@@ -50,4 +50,12 @@ export class CommentsService {
 
     return { message: 'Comment is successfully added' };
   }
+
+  async deleteComment(id: string) {
+    await this.prisma.comment.delete({
+      where: {id}
+    })
+
+    return { message: 'Comment is successfully deleted' }
+  }
 }

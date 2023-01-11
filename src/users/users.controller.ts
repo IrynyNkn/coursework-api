@@ -1,4 +1,4 @@
-import {Controller, Get, Param, UseGuards, Headers, Delete, Patch, Body} from '@nestjs/common';
+import {Controller, Get, Param, UseGuards, Headers, Delete, Patch, Body, Response} from '@nestjs/common';
 import { UsersService } from './users.service';
 import {JwtAuthGuard} from "../auth/jwt.guard";
 import {RolesGuard} from "../roles/roles.guard";
@@ -10,11 +10,11 @@ import {Roles} from "../roles/roles.decorator";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(RolesGuard)
   @Get('/me')
-  getCurrentUser(@Headers() headers) {
+  getCurrentUser(@Headers() headers, @Response() res) {
     const token = headers.authorization.split(' ')[1];
-
-    return this.usersService.getCurrentUser(token);
+    return this.usersService.getCurrentUser(token, res);
   }
 
   @Roles('admin')

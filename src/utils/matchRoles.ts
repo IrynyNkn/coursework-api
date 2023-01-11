@@ -1,10 +1,7 @@
-function matchRoles(roles: string[], userRoles: string[]): boolean {
-  for(let userRole of userRoles) {
-    if(roles.includes(userRole)) {
-      return true;
-    }
-  }
-  return false;
+import {UserRoleType} from "./constants";
+
+function matchRoles(roles: UserRoleType[], userRole: UserRoleType): boolean {
+  return roles.includes(userRole);
 }
 
 export default matchRoles;

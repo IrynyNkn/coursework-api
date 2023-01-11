@@ -13,16 +13,16 @@ model User {
   comments        Comment[]
   commentLikes    CommentLike[]
   createdAt       DateTime      @default(now())
-  email           String        @unique
-  userName        String
+  email           String        @unique @db.VarChar(255)
+  userName        String        @db.VarChar(255)
   hashedPassword  String
-  roles           String[]
-  badgeColor      String? // remove ?
+  role            String        @db.VarChar(64)
+  badgeColor      String        @db.VarChar(64)
 }
 
 model Publisher {
   id    String @unique @default(uuid())
-  name  String
+  name  String @db.VarChar(255)
   games Game[]
 }
 
@@ -34,7 +34,7 @@ model Game {
   platforms      PlatformsOnGames[]
   ratings        Rating[]
   comments       Comment[]
-  title          String
+  title          String             @db.VarChar(450)
   description    String
   imageLink      String?
   ageRestriction Int
@@ -44,7 +44,7 @@ model Game {
 
 model Genre {
   id    String          @unique @default(uuid())
-  name  String
+  name  String          @db.VarChar(255)
   games GenresOnGames[]
 }
 
@@ -59,7 +59,7 @@ model GenresOnGames {
 
 model Platform {
   id    String             @unique @default(uuid())
-  name  String
+  name  String             @db.VarChar(255)
   games PlatformsOnGames[]
 }
 
@@ -92,7 +92,8 @@ model Comment {
   parent            Comment?      @relation("PreviousComment", fields: [parentId], references: [id])
   daughterComments  Comment[]     @relation("PreviousComment")
   commentLikes      CommentLike[]
-  replyUserMention  String?
+  replyUserMention  String?       @db.VarChar(255)
+  createdAt         DateTime      @default(now())
 }
 
 model CommentLike {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {PrismaService} from "../../prisma/prisma.service";
-import {Request} from "express";
+import {Response as Res} from "express";
 import {JwtService} from "@nestjs/jwt";
 import {UpdUserDto} from "./dto/updUser.dto";
 
@@ -8,27 +8,54 @@ import {UpdUserDto} from "./dto/updUser.dto";
 export class UsersService {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
-  async getCurrentUser(token: string) {
+  async getCurrentUser(token: string, res: Res) {
     const decodedPayload = await this.decodeToken(token);
 
     const currentUser = await this.prisma.user.findUnique({
       where: {
         id: (decodedPayload as {[key: string]: any}).id
+      },
+      select: {
+        badgeColor: true,
+        email: true,
+        id: true,
+        role: true,
+        userName: true
       }
     });
 
-    return {
+    return res.set({ 'Access-Control-Allow-Origin': 'http://localhost:3000' }).json({
+      message: 'Game is successfully created',
       data: currentUser
-    };
+    });
   }
 
   async getUser(id: string) {
-    const user = await this.prisma.user.findUnique({where: {id}});
-    return { user };
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id
+      },
+      select: {
+        badgeColor: true,
+        email: true,
+        id: true,
+        role: true,
+        userName: true
+      }
+    });
+    return { data: user };
   }
 
   async getUsers() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      select: {
+        badgeColor: true,
+        email: true,
+        id: true,
+        role: true,
+        userName: true
+      }
+    });
   }
 
   async deleteUser(id: string) {
@@ -44,13 +71,12 @@ export class UsersService {
   }
 
   async changeUserRole(id: string, updUserDto: UpdUserDto) {
-    console.log('Upd user', updUserDto)
     const updatedUser = await this.prisma.user.update({
       where: {
         id
       },
       data: {
-        roles: updUserDto.roles
+        role: updUserDto.role
       }
     })
 

@@ -25,8 +25,15 @@ export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
   @Get()
-  getGames(@Query('skip') skip: string, @Query('take') take: string) {
-    return this.gamesService.getGames({skip: Number(skip), take: Number(take)});
+  getGames(
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('genres') genres: string,
+    @Query('platforms') platforms: string,
+    @Query('publishers') publishers: string,
+    @Query('searchQuery') searchQuery: string,
+  ) {
+    return this.gamesService.getGames({skip: Number(skip), take: Number(take), genres, platforms, publishers, searchQuery});
   }
 
   @Get(':id')

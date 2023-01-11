@@ -3,6 +3,7 @@ import {PrismaService} from "../../prisma/prisma.service";
 import {GameDto} from "./dto/games.dto";
 import { Response as Res } from 'express';
 import {apiUrl} from "../utils/constants";
+import {calculateRating} from "../utils/games";
 
 @Injectable()
 export class GamesService {
@@ -86,6 +87,14 @@ export class GamesService {
         },
       }
     });
+    const ratings = await this.prisma.rating.findMany({
+      where: {
+        gameId: id
+      }
+    });
+    const gameRating = calculateRating(ratings);
+    // @ts-ignore
+    game.gameRating = gameRating;
     game.imageLink = `${apiUrl}/${game.imageLink}`
 
     return res.set({ 'Access-Control-Allow-Origin': 'http://localhost:3000' }).json({
@@ -96,55 +105,188 @@ export class GamesService {
   async getGames(params: {
     skip?: number;
     take?: number;
+    genres?: string;
+    platforms?: string;
+    publishers?: string;
+    searchQuery?: string;
   }) {
-    const { skip, take } = params;
+    const { skip, take, genres, platforms, publishers, searchQuery } = params;
+
     let gamesList = [];
+    const genresValues = genres ? genres.split(',') : [];
+
+    const platformsValues = platforms ? platforms.split(',') : [];
+    const publishersValues = publishers ? publishers.split(',') : [];
 
     if (!skip && !take) {
-      gamesList = await this.prisma.game.findMany({
-        select: {
-          id: true,
-          title: true,
-          publisher: true,
-          genres: {
-            select: {
-              genre: true
-            }
-          },
-          platforms: {
-            select: {
-              platform: true
-            }
-          },
-          imageLink: true
-        }
-      });
+      gamesList = await this.prisma.$transaction([
+        this.prisma.game.count(),
+        this.prisma.game.findMany({
+          select: {
+            id: true,
+            title: true,
+            publisher: true,
+            genres: {
+              select: {
+                genre: true
+              }
+            },
+            platforms: {
+              select: {
+                platform: true
+              }
+            },
+            imageLink: true
+          }
+        })
+      ]);
     } else if (isNaN(skip)) {
-      gamesList = await this.prisma.game.findMany({
-        take
-      });
+      gamesList = await this.prisma.$transaction([
+        this.prisma.game.count({
+          where: {
+            title: searchQuery ? {
+              contains: searchQuery
+            } : {},
+            genres: genres ? {
+              some: {
+                genreId: {
+                  in : genresValues
+                }
+              }
+            } : {},
+            platforms: platforms ? {
+              some: {
+                platformId: {
+                  in: platformsValues
+                }
+              }
+            } : {},
+            publisherId: publishers ? {
+              in: publishersValues
+            } : {}
+          },
+        }),
+        this.prisma.game.findMany({
+          take,
+          where: {
+            title: searchQuery ? {
+              contains: searchQuery
+            } : {},
+            genres: genres ? {
+              some: {
+                genreId: {
+                  in : genresValues
+                }
+              }
+            } : {},
+            platforms: platforms ? {
+              some: {
+                platformId: {
+                  in: platformsValues
+                }
+              }
+            } : {},
+            publisherId: publishers ? {
+              in: publishersValues
+            } : {}
+          },
+          select: {
+            id: true,
+            title: true,
+            publisher: true,
+            genres: {
+              select: {
+                genre: true
+              }
+            },
+            platforms: {
+              select: {
+                platform: true
+              }
+            },
+            imageLink: true
+          }
+        })
+      ])
     } else {
-      gamesList = await this.prisma.game.findMany({
+      gamesList = await this.prisma.$transaction([
+        this.prisma.game.count({
+          where: {
+            title: searchQuery ? {
+              contains: searchQuery
+            } : {},
+            genres: genres ? {
+              some: {
+                genreId: {
+                  in : genresValues
+                }
+              }
+            } : {},
+            platforms: platforms ? {
+              some: {
+                platformId: {
+                  in: platformsValues
+                }
+              }
+            } : {},
+            publisherId: publishers ? {
+              in: publishersValues
+            } : {}
+          },
+        }),
+        this.prisma.game.findMany({
+          skip,
+          take,
+          where: {
+            title: searchQuery ? {
+              contains: searchQuery
+            } : {},
+            genres: genres ? {
+              some: {
+                genreId: {
+                  in : genresValues
+                }
+              }
+            } : {},
+            platforms: platforms ? {
+              some: {
+                platformId: {
+                  in: platformsValues
+                }
+              }
+            } : {},
+            publisherId: publishers ? {
+              in: publishersValues
+            } : {}
+          },
+          select: {
+            id: true,
+            title: true,
+            publisher: true,
+            genres: {
+              select: {
+                genre: true
+              }
+            },
+            platforms: {
+              select: {
+                platform: true
+              }
+            },
+            imageLink: true
+          }
+        })
+      ])
+    }
+
+    return {
+      message: 'Games list',
+      meta: {
+        totalCount: gamesList[0],
         skip,
         take,
-        select: {
-          id: true,
-          title: true,
-          publisher: true,
-          genres: {
-            select: {
-              genre: true
-            }
-          },
-          platforms: {
-            select: {
-              platform: true
-            }
-          },
-          imageLink: true
-        }
-      });
-      gamesList = gamesList.map(game => {
+      },
+      data: gamesList[1].map(game => {
         if(game.imageLink) {
           return {
             ...game,
@@ -153,18 +295,6 @@ export class GamesService {
         }
         return game;
       })
-    }
-
-    const totalGamesCount = await this.prisma.game.count();
-
-    return {
-      message: 'Games list',
-      meta: {
-        totalCount: totalGamesCount,
-        skip,
-        take,
-      },
-      data: gamesList
     };
   }
 

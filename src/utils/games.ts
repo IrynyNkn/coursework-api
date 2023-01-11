@@ -1,5 +1,12 @@
 import {BadRequestException} from "@nestjs/common";
 
+type RatingType = {
+  id: string;
+  userId: string;
+  gameId: string;
+  value: number
+}
+
 export const editFileName = (req, file, callback) => {
   const fileNameArray = file.originalname.split('.');
   const name = fileNameArray[0];
@@ -17,3 +24,15 @@ export const imageFileFilter = (req, file, callback) => {
   }
   callback(null, true);
 };
+
+export const calculateRating = (ratings: RatingType[]) => {
+  if(ratings.length === 0) return 0;
+
+  const ratingSum = ratings.reduce(
+    (accumulator, currentValue) => accumulator + currentValue.value,
+    0
+  );
+  const resValue = ratingSum / ratings.length;
+  const isInt = resValue.toString().length === 1;
+  return isInt ? resValue : resValue.toFixed(1);
+}
