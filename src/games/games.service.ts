@@ -117,167 +117,58 @@ export class GamesService {
 
     const platformsValues = platforms ? platforms.split(',') : [];
     const publishersValues = publishers ? publishers.split(',') : [];
+    const toSkip = isNaN(skip) ? 0 : skip;
+    const toTake = isNaN(take) ? undefined : take;
 
-    if (!skip && !take) {
-      gamesList = await this.prisma.$transaction([
-        this.prisma.game.count(),
-        this.prisma.game.findMany({
-          select: {
-            id: true,
-            title: true,
-            publisher: true,
-            genres: {
-              select: {
-                genre: true
-              }
-            },
-            platforms: {
-              select: {
-                platform: true
-              }
-            },
-            imageLink: true
+    const gamesFilter =  {
+      title: searchQuery ? {
+        contains: searchQuery,
+      } : {},
+      genres: genres ? {
+        some: {
+          genreId: {
+            in : genresValues
           }
-        })
-      ]);
-    } else if (isNaN(skip)) {
-      gamesList = await this.prisma.$transaction([
-        this.prisma.game.count({
-          where: {
-            title: searchQuery ? {
-              contains: searchQuery
-            } : {},
-            genres: genres ? {
-              some: {
-                genreId: {
-                  in : genresValues
-                }
-              }
-            } : {},
-            platforms: platforms ? {
-              some: {
-                platformId: {
-                  in: platformsValues
-                }
-              }
-            } : {},
-            publisherId: publishers ? {
-              in: publishersValues
-            } : {}
-          },
-        }),
-        this.prisma.game.findMany({
-          take,
-          where: {
-            title: searchQuery ? {
-              contains: searchQuery
-            } : {},
-            genres: genres ? {
-              some: {
-                genreId: {
-                  in : genresValues
-                }
-              }
-            } : {},
-            platforms: platforms ? {
-              some: {
-                platformId: {
-                  in: platformsValues
-                }
-              }
-            } : {},
-            publisherId: publishers ? {
-              in: publishersValues
-            } : {}
-          },
-          select: {
-            id: true,
-            title: true,
-            publisher: true,
-            genres: {
-              select: {
-                genre: true
-              }
-            },
-            platforms: {
-              select: {
-                platform: true
-              }
-            },
-            imageLink: true
+        }
+      } : {},
+      platforms: platforms ? {
+        some: {
+          platformId: {
+            in: platformsValues
           }
-        })
-      ])
-    } else {
-      gamesList = await this.prisma.$transaction([
-        this.prisma.game.count({
-          where: {
-            title: searchQuery ? {
-              contains: searchQuery
-            } : {},
-            genres: genres ? {
-              some: {
-                genreId: {
-                  in : genresValues
-                }
-              }
-            } : {},
-            platforms: platforms ? {
-              some: {
-                platformId: {
-                  in: platformsValues
-                }
-              }
-            } : {},
-            publisherId: publishers ? {
-              in: publishersValues
-            } : {}
+        }
+      } : {},
+      publisherId: publishers ? {
+        in: publishersValues
+      } : {}
+    };
+
+    gamesList = await this.prisma.$transaction([
+      this.prisma.game.count({
+        where: gamesFilter,
+      }),
+      this.prisma.game.findMany({
+        skip: toSkip,
+        take: toTake,
+        where: gamesFilter,
+        select: {
+          id: true,
+          title: true,
+          publisher: true,
+          genres: {
+            select: {
+              genre: true
+            }
           },
-        }),
-        this.prisma.game.findMany({
-          skip,
-          take,
-          where: {
-            title: searchQuery ? {
-              contains: searchQuery
-            } : {},
-            genres: genres ? {
-              some: {
-                genreId: {
-                  in : genresValues
-                }
-              }
-            } : {},
-            platforms: platforms ? {
-              some: {
-                platformId: {
-                  in: platformsValues
-                }
-              }
-            } : {},
-            publisherId: publishers ? {
-              in: publishersValues
-            } : {}
+          platforms: {
+            select: {
+              platform: true
+            }
           },
-          select: {
-            id: true,
-            title: true,
-            publisher: true,
-            genres: {
-              select: {
-                genre: true
-              }
-            },
-            platforms: {
-              select: {
-                platform: true
-              }
-            },
-            imageLink: true
-          }
-        })
-      ])
-    }
+          imageLink: true
+        }
+      })
+    ]);
 
     return {
       message: 'Games list',
