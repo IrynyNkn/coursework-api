@@ -2,8 +2,8 @@ import {BadRequestException, Injectable} from '@nestjs/common';
 import {PrismaService} from "../../prisma/prisma.service";
 import {GameDto} from "./dto/games.dto";
 import { Response as Res } from 'express';
-import {apiUrl} from "../utils/constants";
 import {calculateRating} from "../utils/games";
+import configuration from "../config/configuration";
 
 @Injectable()
 export class GamesService {
@@ -93,9 +93,10 @@ export class GamesService {
       }
     });
     const gameRating = calculateRating(ratings);
+    const config = configuration();
     // @ts-ignore
     game.gameRating = gameRating;
-    game.imageLink = `${apiUrl}/${game.imageLink}`
+    game.imageLink = `${config.apiUrl}/${game.imageLink}`
 
     return res.set({ 'Access-Control-Allow-Origin': 'http://localhost:3000' }).json({
       data: game
@@ -112,6 +113,7 @@ export class GamesService {
   }) {
     const { skip, take, genres, platforms, publishers, searchQuery } = params;
 
+    const config = configuration();
     let gamesList = [];
     const genresValues = genres ? genres.split(',') : [];
 
@@ -181,7 +183,7 @@ export class GamesService {
         if(game.imageLink) {
           return {
             ...game,
-            imageLink: `${apiUrl}/${game.imageLink}`
+            imageLink: `${config.apiUrl}/${game.imageLink}`
           }
         }
         return game;

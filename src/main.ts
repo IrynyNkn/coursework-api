@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {ValidationPipe} from "@nestjs/common";
+import configuration from "./config/configuration";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,7 @@ async function bootstrap() {
     methods: ["GET", "POST", 'PATCH'],
     credentials: true,
   });
-  await app.listen(5050);
+  const config = configuration();
+  await app.listen(config.port);
 }
 bootstrap();
